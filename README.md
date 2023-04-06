@@ -112,12 +112,14 @@ Only the `name` of a project is required configuration. All others are optional.
 
 Kite can be used as a CLI as well as a library from other applications. Kite exports the following functions for use from other modules that imports it.
 
+
 - **`build(path)`:**
   
   Automatically build a kite project based on the given configuration file in the path.
   
   - **@params** *string* `path`: The path to the kite project directory
   - **@returns** *string*:  Path to the output file.
+
 
 - **`build_lib(name [, configuration])`:**
   
@@ -127,6 +129,7 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
   - **@returns** *string*:   Path to the executable file.
 
+
 - **`build_static_lib(name, configuration)`:**
   
   Same as `build_lib()`, but builds a static library instead.
@@ -135,6 +138,7 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
   - **@returns** *string*:   Path to the executable file.
 
+
 - **`build_exe(name [, configuration])`:**
   
   Same as `build_lib()`, but builds an executable instead.
@@ -142,6 +146,7 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@params** *string* `name`:   The name of the executable.
   - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
   - **@returns** *string*:   Path to the executable file.
+
 
 - **`tools()`:**
   
