@@ -3,7 +3,19 @@
 A package that helps to build C extensions for Blade as well as other C/C++ applications from a Blade script/project. Kite does not replace a build system, but rather sets up a build system for you and leverage them accordingly.
 
 
+## Package Information
+---
+
+- **Name:** git
+- **Version:** 1.0.0
+- **Homepage:** [https://github.com/blade-lang/kite](https://github.com/blade-lang/kite)
+- **Tags:** `build`, `gcc`, `cmake`, `compiler`, `build-system`, `extension`, `c`, `package`, `library`.
+- **Author:** Richard Ore <eqliqandfriends@gmail.com>
+- **License:** ISC
+
+
 ## Installation
+---
 
 Kite can be installed via Nyssa using the following command:
 
@@ -25,6 +37,7 @@ Kite requires the following build tools (it will download/install any missing):
 
 
 ## Usage
+---
 
 The simplest way to use `kite` is to use it as an auto builder. To do this you must first, 
 
@@ -46,6 +59,7 @@ echo 'Artefact: ${artefact}'
 
 
 ## Kite Configuration
+---
 
 The `kite.json` file can contain the following configuration:
 
@@ -93,61 +107,51 @@ Only the `name` of a project is required configuration. All others are optional.
 ```
 
 
-## Kite library functions
+## API Documentation
+---
 
 Kite can be used as a CLI as well as a library from other applications. Kite exports the following functions for use from other modules that imports it.
 
-- ### build(path) 
+- **`build(path)`:**
   
   Automatically build a kite project based on the given configuration file in the path.
   
-  - **Params**
-    - *string* `path`:  The path to the kite project directory
-  - **Returns** 
-    - *string*:   Path to the output file
+  - **@params** *string* `path`: The path to the kite project directory
+  - **@returns** *string*:  Path to the output file.
 
--  ### build_lib(name [, configuration])
+- **`build_lib(name [, configuration])`:**
   
   Builds a shared library with the given name and kite configuration and returns the path to the generated artefact.
   
-  - **Params**
-    - *string* `name`:   The name of the executable
-    - *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
-  
-  - **Returns**
-    - *string*:   Path to the executable file.
+  - **@params** *string* `name`:   The name of the executable
+  - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
+  - **@returns** *string*:   Path to the executable file.
 
--  ### build_static_lib(name [, configuration])
+- **`build_static_lib(name, configuration)`:**
   
-  Same as build_lib(), but builds a static library instead.
-  
-  - **Params**
-    - *string* `name`:   The name of the executable
-    - *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
-  
-  - **Returns**
-    - *string*:   Path to the executable file.
+  Same as `build_lib()`, but builds a static library instead.
 
--  ### build_exe(name [, configuration])
-  
-  Same as build_lib(), but builds an executable instead.
-  
-  - **Params**
-    - *string* `name`:   The name of the executable
-    - *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
-  
-  - **Returns**
-    - *string*:   Path to the executable file.
+  - **@params** *string* `name`:   The name of the executable
+  - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
+  - **@returns** *string*:   Path to the executable file.
 
-- ### tools()
+- **`build_exe(name [, configuration])`:**
+  
+  Same as `build_lib()`, but builds an executable instead.
+  
+  - **@params** *string* `name`:   The name of the executable.
+  - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
+  - **@returns** *string*:   Path to the executable file.
+
+- **`tools()`:**
   
   Returns a dictionary that contains information about the build tools used by `kite`.
 
-  - **Returns**
-    - *dictionary*
+  - **@returns** *dictionary*
 
 
 ## Limitations
+---
 
 Because `kite` leverages `CMake` as its build tool, Kite is currently limited to only what can be acheived through CMake and is subject to any bugs that may exist or not in CMake.
 
