@@ -23,7 +23,7 @@ var config_file_path = os.join_paths(root_dir, 'config.json')
 
 def _get_config() {
   var config_file = file(config_file_path)
-  if !config_file.exists() die Excpetion(_INSTALL_ERROR)
+  if !config_file.exists() die Exception(_INSTALL_ERROR)
 
   var config = json.decode(config_file.read())
   config.blade_dir = os.dir_name(os.exe_path)
@@ -103,7 +103,7 @@ def _enforce_list(items) {
 
 def _enforce_string(item) {
   if !is_string(item)
-    die Excpetion('invalid include directory ${item}')
+    die Exception('invalid include directory ${item}')
   return item
 }
 
