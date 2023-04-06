@@ -25,10 +25,10 @@ if os.platform == 'linux' {
 def install_winlibs() {
   if !file('./winlibs.zip').exists() {
     echo 'Downloading WinLibs...'
-    var libgit_request = http.get('https://github.com/brechtsanders/winlibs_mingw/releases/download/12.1.0-14.0.6-10.0.0-msvcrt-r3/winlibs-x86_64-posix-seh-gcc-12.1.0-mingw-w64msvcrt-10.0.0-r3.zip')
-    if libgit_request.status != 200 
+    var winlibs_request = http.get('https://github.com/brechtsanders/winlibs_mingw/releases/download/12.1.0-14.0.6-10.0.0-msvcrt-r3/winlibs-x86_64-posix-seh-gcc-12.1.0-mingw-w64msvcrt-10.0.0-r3.zip')
+    if winlibs_request.status != 200 
       die Exception('Could not download WinLibs')
-    file('./winlibs.zip', 'wb').write(libgit_request.body)
+    file('./winlibs.zip', 'wb').write(winlibs_request.body)
   }
   
   if !os.dir_exists('./winlibs') {

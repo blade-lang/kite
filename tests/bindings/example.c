@@ -1,11 +1,11 @@
 #include <blade.h>
 
 b_value example_field(b_vm *vm) {
-  return NUMBER_VAL(0);
+  return NUMBER_VAL(1000);
 }
 
 DECLARE_MODULE_METHOD(example_function) {
-  RETURN;
+  RETURN_STRING("It works!");
 }
 
 CREATE_MODULE_LOADER(example) {

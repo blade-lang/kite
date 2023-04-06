@@ -6,6 +6,8 @@
   "tags": [
     "build",
     "gcc",
+    "clang",
+    "mingw64",
     "cmake",
     "compiler",
     "build-system",
@@ -22,5 +24,6 @@
   "deps": {
     "tar": "1.0.0"
   }, 
-  "post_install": "./setup.b"
+  "post_install": "./setup.b",
+  "cli": "./cli.b"
 }

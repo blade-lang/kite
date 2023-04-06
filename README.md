@@ -1,6 +1,7 @@
 # kite
 
-A package to help setup a build system and build C extensions for Blade.
+A package that helps to build C extensions for Blade as well as other C/C++ applications from a Blade script/project.
+
 
 ### Package Information
 
@@ -11,3 +12,15 @@ A package to help setup a build system and build C extensions for Blade.
 - **Author:** Richard Ore <eqliqandfriends@gmail.com>
 - **License:** ISC
 
+
+### Installation
+
+Kite can be installed via Nyssa using the following command:
+
+```
+nyssa install -g kite
+```
+
+### Documentation
+
+Documentation is live at [https://mcfriend99.github.io/kite](https://mcfriend99.github.io/kite)
