@@ -23,4 +23,4 @@ nyssa install -g kite
 
 ### Documentation
 
-Documentation is live at [https://mcfriend99.github.io/kite](https://mcfriend99.github.io/kite)
+Documentation is live at [https://blade-lang.github.io/kite](https://blade-lang.github.io/kite)
