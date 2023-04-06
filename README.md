@@ -33,6 +33,7 @@ Kite requires the following build tools (it will download/install any missing):
 - CMake
 - C/C++ Compiler toolchain
 
+
 > Kite will always download its own copy of `cmake` and will not use an existing copy. This is to allow for a consistent `cmake` version across same versions of `kite` installation.
 
 
@@ -49,6 +50,7 @@ After the above steps, you have two ways of building the project. Firstly, via t
 Simply run the command `kite` from the root of the application.
 
 If you have installed `kite` locally, you can build your project by running the following from a script of the Blade REPL.
+
 
 ```
 import kite
@@ -113,7 +115,7 @@ Only the `name` of a project is required configuration. All others are optional.
 Kite can be used as a CLI as well as a library from other applications. Kite exports the following functions for use from other modules that imports it.
 
 
-- **`build(path)`:**
+- `build(path)`:
   
   Automatically build a kite project based on the given configuration file in the path.
   
@@ -121,7 +123,7 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@returns** *string*:  Path to the output file.
 
 
-- **`build_lib(name [, configuration])`:**
+- `build_lib(name [, configuration])`:
   
   Builds a shared library with the given name and kite configuration and returns the path to the generated artefact.
   
@@ -130,16 +132,16 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@returns** *string*:   Path to the executable file.
 
 
-- **`build_static_lib(name, configuration)`:**
+- `build_static_lib(name, configuration)`:
   
   Same as `build_lib()`, but builds a static library instead.
-
-  - **@params** *string* `name`:   The name of the executable
+  
+  - **@params** *string* `name`:   The name of the executable.
   - **@params** *dictionary* `configuration`: A dictionary passing build configuration to the compiler (Optional)
   - **@returns** *string*:   Path to the executable file.
 
 
-- **`build_exe(name [, configuration])`:**
+- `build_exe(name [, configuration])`:
   
   Same as `build_lib()`, but builds an executable instead.
   
@@ -148,10 +150,10 @@ Kite can be used as a CLI as well as a library from other applications. Kite exp
   - **@returns** *string*:   Path to the executable file.
 
 
-- **`tools()`:**
+- `tools()`:
   
   Returns a dictionary that contains information about the build tools used by `kite`.
-
+  
   - **@returns** *dictionary*
 
 
