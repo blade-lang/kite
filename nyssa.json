@@ -1,6 +1,6 @@
 {
   "name": "kite", 
-  "version": "1.0.0", 
+  "version": "1.1.0", 
   "description": "A package to help setup a build system and build C extensions for Blade.", 
   "homepage": "https://github.com/blade-lang/kite", 
   "tags": [

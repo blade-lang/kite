@@ -6,7 +6,7 @@ var EXE = 'exe'
 var SHARED = 'shared'
 var STATIC = 'static'
 
-var _INSTALL_ERROR = 'kite installation failed. reinstall.'
+var _INSTALL_ERROR = 'Kite installation failed. Run "kite" command to fix.'
 var _is_windows = os.platform == 'windows'
 var _is_linux = os.platform == 'linux'
 var _is_osx = os.platform == 'osx'
