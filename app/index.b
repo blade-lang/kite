@@ -1,6 +1,5 @@
 import json
 import os
-import iters
 
 var EXE = 'exe'
 var SHARED = 'shared'
@@ -12,7 +11,7 @@ var _is_linux = os.platform == 'linux'
 var _is_osx = os.platform == 'osx'
 
 # init root directory
-var root_dir = os.join_paths(os.dir_name(os.current_file()), '..')
+var root_dir = os.join_paths(os.dir_name(__file__), '..')
 
 # init build directory
 var build_dir = os.join_paths(root_dir, '.build')
@@ -23,7 +22,7 @@ var config_file_path = os.join_paths(root_dir, 'config.json')
 
 def _get_config() {
   var config_file = file(config_file_path)
-  if !config_file.exists() die Exception(_INSTALL_ERROR)
+  if !config_file.exists() raise Exception(_INSTALL_ERROR)
 
   var config = json.decode(config_file.read())
   config.blade_dir = os.dir_name(os.exe_path)
@@ -92,10 +91,10 @@ def _init_build_dir(dir, name, type) {
 
 def _enforce_list(items) {
   if !is_list(items) 
-    die Exception('invalid include directories')
+    raise Exception('invalid include directories')
   for item in items {
     if !is_string(item)
-      die Exception('invalid include directory ${item}')
+      raise Exception('invalid include directory ${item}')
   }
 
   return items
@@ -103,12 +102,12 @@ def _enforce_list(items) {
 
 def _enforce_string(item) {
   if !is_string(item)
-    die Exception('invalid include directory ${item}')
+    raise Exception('invalid include directory ${item}')
   return item
 }
 
 def _transform_path(item) {
-  if _is_windows return '"${os.real_path(item)}"'
+  if !_is_windows return '"${os.real_path(item)}"'
   return '"${os.real_path(item).replace("\\", "\\\\", false)}"'
 }
 
@@ -119,22 +118,25 @@ def _do_build(type, name, options) {
   name = options.get('name', name)
 
   var standard = options.get('standard', 11)
-  var include_dirs = iters.map(_enforce_list(options.get('include_dirs', [])), _transform_path)
-  var link_dirs = iters.map(_enforce_list(options.get('link_dirs', [])), _transform_path)
-  var language = _enforce_string(options.get('language', 'c')).upper()
+  var include_dirs = _enforce_list(options.get('include_dirs', [])).map(_transform_path)
+  var link_dirs = _enforce_list(options.get('link_dirs', [])).map(_transform_path)
+  var language = _enforce_string(options.get('language', 'c')).lower()
   var root = options.get('root', nil)
 
   var config = _get_config()
   var files = ''
 
   if root {
-    files += '"' + '"\n  "'.join(
-      iters.filter(_get_files(root), | f | {
-        if language == 'C'
-          return f.ends_with('.c') or f.ends_with('.h') 
-        else return f.ends_with('.cpp') or f.ends_with('.cc') or f.ends_with('.cxx') or f.ends_with('.h') or f.ends_with('.hpp') 
+    files += ' ' + ' '.join(
+      _get_files(root).filter(@(f) {
+        if language == 'c'
+          return f.ends_with('.c')
+        else return f.ends_with('.cpp') or f.ends_with('.cc') or f.ends_with('.cxx') 
       })
-    ) + '"'
+    )
+
+    # add root to include directories
+    include_dirs.append(root)
   }
 
   # add sources passed through options.
@@ -145,65 +147,24 @@ def _do_build(type, name, options) {
   var unix_source_files = options.get('unix_files', [])
   
   if source_files {
-    files += '\n  ' + '\n  '.join(iters.map(source_files, _transform_path))
-  }
-  if win_source_files and _is_windows {
-    files += '\n  ' + '\n  '.join(iters.map(win_source_files, _transform_path))
-  }
-  if linux_source_files and _is_linux {
-    files += '\n  ' + '\n  '.join(iters.map(linux_source_files, _transform_path))
-  }
-  if osx_source_files and _is_osx {
-    files += '\n  ' + '\n  '.join(iters.map(osx_source_files, _transform_path))
-  }
-  if unix_source_files and _is_osx {
-    files += '\n  ' + '\n  '.join(iters.map(unix_source_files, _transform_path))
+    files += ' ' + ' '.join(source_files.map(_transform_path))
+  } else if win_source_files and _is_windows {
+    files += ' ' + ' '.join(win_source_files.map(_transform_path))
+  } else if linux_source_files and _is_linux {
+    files += ' ' + ' '.join(linux_source_files.map(_transform_path))
+  } else if osx_source_files and _is_osx {
+    files += ' ' + ' '.join(osx_source_files.map(_transform_path))
+  } else if unix_source_files and (_is_osx or _is_linux) {
+    files += ' ' + ' '.join(unix_source_files.map(_transform_path))
   }
 
-  if language == 'CXX' {
+  if language == 'cxx' or language == 'c++' {
     config.gcc = config.gcc.replace('/gcc$/', 'g++').replace('/cc$/', 'clang++')
   }
 
-  var output_dir = os.real_path(options.get('output_dir', config.build_dir))
-
-  # create output directory if it does not exists.
-  if !os.dir_exists(output_dir) 
-    os.create_dir(output_dir)
-
-  var cmake_lists = 'cmake_minimum_required(VERSION 3.18)\n' +
-    'project(${name} ${language})\n\n' +
-    'set(CMAKE_${language}_STANDARD ${standard})\n' +
-    'set(CMAKE_${language}_STANDARD_REQUIRED True)\n' +
-    'set(CMAKE_MAKE_PROGRAM "${config.make}")\n' +
-    'set(CMAKE_${language}_COMPILER "${config.gcc}")\n'
-  
-  if type != EXE {
-    cmake_lists += 'set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${output_dir}")\n' +
-      'set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${output_dir}")\n' +
-      (type == SHARED ? 'set(CMAKE_SHARED_LIBRARY_PREFIX "")\n' : '')
-  } else {
-    cmake_lists += 'set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${output_dir}")\n'
-  }
-
-  cmake_lists += 'file(MAKE_DIRECTORY "${output_dir}")'
-  
-  if root {
-    cmake_lists += '\ninclude_directories("${config.blade_dir}/includes" "${root}" ${" ".join(include_dirs)})\n' +
-      'link_directories("${config.blade_dir}" ${" ".join(link_dirs)})\n' +
-      '\n'
-  } else {
-    cmake_lists += '\ninclude_directories("${config.blade_dir}/includes" ${" ".join(include_dirs)})\n' +
-      'link_directories("${config.blade_dir}" ${" ".join(link_dirs)})\n' +
-      '\n'
-  }
-    
-  if type == EXE {
-    cmake_lists += 'add_executable(${name}\n  ${files.trim()})\n'
-  } else if type == STATIC {
-    cmake_lists += 'add_library(${name}\n  ${files.trim()})\n'
-  } else {
-    cmake_lists += 'add_library(${name} SHARED\n  ${files.trim()})\n'
-  }
+  # add required include directories
+  include_dirs.append('"${config.blade_dir}/includes"')
+  link_dirs.append('"${config.blade_dir}"')
 
   var flags = ' '.join(options.get('flags', [])).trim()
   var linux_flags = ' '.join(options.get('linux_flags', [])).trim()
@@ -211,23 +172,33 @@ def _do_build(type, name, options) {
   var osx_flags = ' '.join(options.get('osx_flags', [])).trim()
   var unix_flags = ' '.join(options.get('unix_flags', [])).trim()
 
-  cmake_lists +=  'target_link_libraries(${name} blade)\n' +
-    '\n' +
-    'set(CMAKE_${language}_FLAGS "\${CMAKE_${language}_FLAGS} ${flags}") # all\n' +
-    'if(\${CMAKE_SYSTEM_NAME} STREQUAL "Linux")\n' +
-    '  set(CMAKE_${language}_FLAGS "\${CMAKE_${language}_FLAGS} -fPIC ${linux_flags}") # linux\n' + # user flags passed after -fPIC to allow override.
-    'endif()\n' +
-    'if(WIN32 OR MINGW)\n' +
-    '    set(CMAKE_${language}_FLAGS "\${CMAKE_${language}_FLAGS} -Wno-pointer-to-int-cast ${windows_flags}") # windows\n' + # same here...
-    'endif()\n' +
-    'if(APPLE)\n' +
-    '    set(CMAKE_${language}_FLAGS "\${CMAKE_${language}_FLAGS} ${osx_flags}") # apple\n' + # same here...
-    'endif()\n' +
-    'if(UNIX)\n' +
-    '    set(CMAKE_${language}_FLAGS "\${CMAKE_${language}_FLAGS} ${unix_flags}") # unix\n' + # same here...
-    'endif()\n'
+  if windows_flags and _is_windows {
+    flags.extend(windows_flags)
+  } else if linux_flags and _is_linux {
+    flags.extend(linux_flags)
+  } else if osx_flags and _is_osx {
+    flags.extend(osx_flags)
+  } else if unix_flags and (_is_osx or _is_linux) {
+    flags.extend(unix_flags)
+  }
 
-  cmake_lists += options.get('extra_script', '')
+  var includes = ' '.join(include_dirs.map(@(i){ return '-I${i}' })).trim()
+  var link_paths = (' '.join(link_dirs.map(@(i){ return '-L${i}' })) + ' -lblade').trim()
+  var link_flags = ' '.join(flags).trim()
+
+  if type != EXE {
+    if type == STATIC {
+      link_flags += ' -static'
+    } else {
+      link_flags += ' -shared'
+    }
+  }
+  
+  var output_dir = os.real_path(options.get('output_dir', config.build_dir))
+
+  # create output directory if it does not exists.
+  if !os.dir_exists(output_dir) 
+    os.create_dir(output_dir)
 
   # init build dorectory
   var build_dir = _init_build_dir(config.build_dir, name, type)
@@ -235,41 +206,33 @@ def _do_build(type, name, options) {
   # copy source to build directory
   _copy_dir(root, build_dir)
 
-  # write out the cmake lists
-  file(os.join_paths(build_dir, 'CMakeLists.txt'), 'w').write(cmake_lists.trim())
-
   os.change_dir(build_dir)
 
-  var cmake_compile_cmd = '"${config.cmake}" -G "Unix Makefiles" .'
+  var ext = type == EXE ? (
+    _is_windows ? '.exe' : ''
+  ) : (
+    _is_linux ? '.so' : (
+      _is_windows ? '.dll' : '.dylib'
+    )
+  )
+  var output_file = os.join_paths(output_dir, '${name}${ext}')
+
+  var make_command = '${config.gcc} ${files} ${includes} ${link_paths} ${link_flags} -o "${output_file}"'
 
   var res
-  if res = os.exec(cmake_compile_cmd) {
-    if res = os.exec('"${config.cmake}" --build .') {
-      # cleanup build directory
-      os.remove_dir(build_dir, true)
-      
-      var regex = '/Linking C (shared|static) library([^\\n]+)/'
-      if type == EXE regex = '/Linking C executable([^\\n]+)/'
-      var lib_matches = res.match(regex)
-      if lib_matches and lib_matches.length() > 2 {
-        var lib_path = lib_matches[2].replace('/(\.\.\/)+/', '').trim()
-        if file(lib_path).exists() {
-          return os.real_path(lib_path)
-        }
+  if (res = os.exec(make_command)) == nil {
+    # cleanup build directory
+    os.remove_dir(build_dir, true)
 
-        return lib_path
-      }
-
-      return os.join_paths(output_dir, name)
+    if file(output_file).exists() {
+      return output_file
     } else {
-      # cleanup build directory
-      os.remove_dir(build_dir, true)
-      die Exception(res or 'CMake failure!')
+      raise Exception(res or 'Build failed!')
     }
   } else {
     # cleanup build directory
     os.remove_dir(build_dir, true)
-    die Exception(res or 'CMake failure!')
+    raise Exception(res or 'Build failure!')
   }
 }
 
@@ -338,27 +301,26 @@ def build_exe(name, configuration) {
  * - `osx_flags`:       Extra compile flags to be passed to compiler on MacOS.
  * - `unix_flags`:      Extra compile flags to be passed to compiler on all Unix/Unix-like OS.
  * - `output_dir`:      The directory in which the build output will be placed in.
- * - `extra_script`:    Custom CMakeLists script to add to the autogenerated one.
  * 
  * @param string path   The path to the kite project directory
  * @returns string   Path to the output file
  */
 def build(path, output_dir) {
   if !os.is_dir(path) or !os.dir_exists(path)
-    die Exception('path must point to a directory.')
+    raise Exception('path must point to a directory.')
   path = os.real_path(path)
 
   var build_config_file = file(os.join_paths(path, 'kite.json'))
   if !build_config_file.exists()
-    die Exception('the directory does not contain a kite configuration file.')
+    raise Exception('the directory does not contain a kite configuration file.')
 
   var config = json.decode(build_config_file.read())
   if !is_dict(config) or !config.contains('name') or !config.name
-    die Exception('invalid kite configuration encountered.')
+    raise Exception('invalid kite configuration encountered.')
 
   var type = config.get('type', SHARED)
   if ![EXE, SHARED, STATIC].contains(type)
-    die Exception('unknown build type specified')
+    raise Exception('unknown build type specified')
 
   # save the current directory
   var current_dir = os.cwd()
